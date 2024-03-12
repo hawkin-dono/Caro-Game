@@ -21,7 +21,7 @@ X = 'X'
 O = 'O'
 SPACE = ' '
 
-ZZZ = 5 ##############
+TARGET = 5 ##############
 
     
 class State():
@@ -97,8 +97,8 @@ class State():
         
         count = 0
         row, col = self.last_move
-        y1 = max(row - (ZZZ - 1), 0)
-        y2 = min(row + (ZZZ - 1), len(self.game_map) - 1)
+        y1 = max(row - (TARGET - 1), 0)
+        y2 = min(row + (TARGET - 1), len(self.game_map) - 1)
 
         for y in range(y1, y2 + 1):
             if self.game_map[row][y] == self.game_map[row][col]:
@@ -106,7 +106,7 @@ class State():
             else:
                 count = 0
 
-            if (count >= ZZZ):
+            if (count >= TARGET):
                 return True
 
         return False
@@ -120,8 +120,8 @@ class State():
         """
         count = 0
         row, col = self.last_move
-        x1 = max(col - (ZZZ - 1), 0)
-        x2 = min(col + (ZZZ - 1), len(self.game_map) - 1)
+        x1 = max(col - (TARGET - 1), 0)
+        x2 = min(col + (TARGET - 1), len(self.game_map) - 1)
         
         for x in range(x1, x2 + 1):
             if self.game_map[x][col] == self.game_map[row][col]:
@@ -129,7 +129,7 @@ class State():
             else: 
                 count = 0
 
-            if (count >= ZZZ):
+            if (count >= TARGET):
                 return True
 
         return False
@@ -145,14 +145,14 @@ class State():
         row, col = self.last_move
         x1, x2, y1, y2 = 0, 0, 0, 0
         if (row <= col):
-            x1 = max(row - (ZZZ - 1), 0)
+            x1 = max(row - (TARGET - 1), 0)
             y1 = col - (row - x1)
-            y2 = min(col + (ZZZ - 1), len(self.game_map) - 1)
+            y2 = min(col + (TARGET - 1), len(self.game_map) - 1)
             x2 = row + (y2 - col)
         else:
-            y1 = max(col - (ZZZ - 1), 0)
+            y1 = max(col - (TARGET - 1), 0)
             x1 = row - (col - y1)
-            x2 = min(row + (ZZZ - 1), len(self.game_map) - 1)
+            x2 = min(row + (TARGET - 1), len(self.game_map) - 1)
             y2 = col + (x2 - row)
 
         y = y1
@@ -163,7 +163,7 @@ class State():
                 count = 0
             y += 1
             
-            if count >= ZZZ:
+            if count >= TARGET:
                 return True        
 
         return False
@@ -179,14 +179,14 @@ class State():
         row, col = self.last_move
         x1, x2, y1, y2 = 0, 0, 0, 0
         if (row <= len(self.game_map) - 1 - col):
-            x1 = max(row - (ZZZ - 1), 0)
+            x1 = max(row - (TARGET - 1), 0)
             y2 = col + (row - x1)
-            y1 = max(col - (ZZZ - 1), 0)
+            y1 = max(col - (TARGET - 1), 0)
             x2 = row + (col - y1)
         else:
-            y2 = min(col + (ZZZ - 1), len(self.game_map) - 1)
+            y2 = min(col + (TARGET - 1), len(self.game_map) - 1)
             x1 = row - (y2 - col)
-            x2 = min(row + (ZZZ - 1), len(self.game_map) - 1)
+            x2 = min(row + (TARGET - 1), len(self.game_map) - 1)
             y1 = col - (x2 - row)
 
         y = y2
@@ -197,7 +197,7 @@ class State():
                 count = 0
             y -= 1
 
-            if count >= ZZZ:
+            if count >= TARGET:
                 return True
             
         return False
@@ -229,9 +229,6 @@ class State():
     
 class Solver():
     def __init__(self) -> None:
-        pass
-    
-    def solve(self, state: State) -> tuple[int, int]:
         pass
 
     def minimax(self, state: State, depth: int, alpha = -float("inf"), beta = float("inf")) -> int:
