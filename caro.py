@@ -25,10 +25,22 @@ ZZZ = 5 ##############
 
     
 class State():
-    def __init__(self, game_map: list[list], move_cnt: int, empty_positions: set[tuple[int, int]], last_move: tuple[int, int] = (-1, -1)) -> None:
+    def __init__(self, game_map: list[list], move_cnt: int, empty_positions: set[tuple[int, int]]= None, last_move: tuple[int, int] = (-1, -1)) -> None:
+        """
+        Args:
+            game_map (list[list]): map of the game
+            move_cnt (int): number of moves haved been done
+            empty_positions (set[tuple[int, int]], optional): set of empty_position. Defaults to None.
+            last_move (tuple[int, int], optional): the last move. Defaults to (-1, -1).
+        """
+        
         self.game_map = game_map
         self.move_cnt = move_cnt
-        self.empty_positions = empty_positions
+        
+        if empty_positions is None:
+            self.empty_positions = self.get_target_empty_positions()
+        else:
+            self.empty_positions = empty_positions
         self.last_move = last_move
         
     def print_state(self):
@@ -51,11 +63,26 @@ class State():
     def get_symbol(move_cnt) -> str:
         return ((move_cnt + 1) % 2) * X + (move_cnt % 2) * O
     
-    @staticmethod
-    def is_empty_position(game_map: list[list], x: int, y: int) -> bool:
-        if game_map[x][y] == SPACE:
+    def is_empty_position(self, x: int, y: int) -> bool:
+        if x < 0 or x >= len(self.game_map) or y < 0 or y >= len(self.game_map):
+            return False
+        if self.game_map[x][y] == SPACE:
             return True
         return False
+    
+    def get_target_empty_positions(self) -> set[tuple[int, int]]:
+        empty_positions = set()
+        for i in range(len(self.game_map)):
+            for j in range(len(self.game_map)):
+                if self.game_map[i][j] == SPACE:
+                    continue
+                for x in range(max(i - 2, 0), min(i + 3, len(self.game_map))):
+                    for y in range(max(j - 2, 0), min(j + 3, len(self.game_map))):
+                        if self.is_empty_position(x, y):
+                            empty_positions.add((x, y))
+        return empty_positions
+    
+        
     
     def check_row_end(self) -> bool:
         """_summary_
@@ -240,16 +267,22 @@ class Solver():
             while len(empty_positions_copy) > 0:
                 
                 empty_position = empty_positions_copy.pop()
+                empty_positions_tmp = state.empty_positions.copy()
+                last_move_tmp = state.last_move
+                i, j = empty_position
+                for x in range(max(i - 1, 0), min(i + 2, len(state.game_map))):
+                    for y in range(max(j - 1, 0), min(j + 2, len(state.game_map))):
+                        if state.is_empty_position(x, y):
+                            state.empty_positions.add((x, y))
+                            
                 state.empty_positions.remove(empty_position)
                 state.game_map[empty_position[0]][empty_position[1]] = State.get_symbol(state.move_cnt)
                 state.move_cnt += 1
-                last_move_tmp = state.last_move
                 state.last_move = empty_position
                 
                 best = min(best, self.minimax(state, depth + 1, alpha, beta))
                 
-                
-                state.empty_positions.add(empty_position)
+                state.empty_positions = empty_positions_tmp
                 state.game_map[empty_position[0]][empty_position[1]] = SPACE
                 state.move_cnt -= 1
                 state.last_move = last_move_tmp
@@ -266,15 +299,22 @@ class Solver():
             while len(empty_positions_copy) > 0:
                 
                 empty_position = empty_positions_copy.pop()
+                empty_positions_tmp = state.empty_positions.copy()
+                last_move_tmp = state.last_move
+                i, j = empty_position
+                for x in range(max(i - 1, 0), min(i + 2, len(state.game_map))):
+                    for y in range(max(j - 1, 0), min(j + 2, len(state.game_map))):
+                        if state.is_empty_position(x, y):
+                            state.empty_positions.add((x, y))
+                            
                 state.empty_positions.remove(empty_position)
                 state.game_map[empty_position[0]][empty_position[1]] = State.get_symbol(state.move_cnt)
                 state.move_cnt += 1
-                last_move_tmp = state.last_move
                 state.last_move = empty_position
                 
                 best = max(best, self.minimax(state, depth + 1, alpha, beta))
 
-                state.empty_positions.add(empty_position)
+                state.empty_positions = empty_positions_tmp
                 state.game_map[empty_position[0]][empty_position[1]] = SPACE
                 state.move_cnt -= 1
                 state.last_move = last_move_tmp
@@ -299,16 +339,22 @@ class Solver():
         empty_positions_copy = state.empty_positions.copy()
         while len(empty_positions_copy) > 0:
             empty_position = empty_positions_copy.pop()
-            # print(empty_position)
-            state.empty_positions.remove(empty_position)
-            state.game_map[empty_position[0]][empty_position[1]] = State.get_symbol(move_cnt= state.move_cnt)
-            state.move_cnt += 1
+            empty_positions_tmp = state.empty_positions.copy()
             last_move_tmp = state.last_move
+            i, j = empty_position
+            for x in range(max(i - 1, 0), min(i + 2, len(state.game_map))):
+                for y in range(max(j - 1, 0), min(j + 2, len(state.game_map))):
+                    if state.is_empty_position(x, y):
+                        state.empty_positions.add((x, y))
+                        
+            state.empty_positions.remove(empty_position)
+            state.game_map[empty_position[0]][empty_position[1]] = State.get_symbol(state.move_cnt)
+            state.move_cnt += 1
             state.last_move = empty_position
                 
             move_val = self.minimax(state, 0)
             
-            state.empty_positions.add(empty_position)
+            state.empty_positions = empty_positions_tmp
             state.game_map[empty_position[0]][empty_position[1]] = SPACE
             state.move_cnt -= 1
             state.last_move = last_move_tmp
@@ -324,7 +370,7 @@ class Solver():
         return best_move         
 
 class CaroGame():
-    def __init__(self, n: int= None, game_map: list[list] = None, move_cnt: int = None, empty_positions: set[tuple[int, int]] = None, last_move: tuple[int, int] = (-1, -1)):
+    def __init__(self, n: int= None, game_map: list[list] = None, move_cnt: int = None, last_move: tuple[int, int] = (-1, -1)):
         """_summary_
 
         Args:
@@ -339,7 +385,7 @@ class CaroGame():
         if n is None:
             self.state = self.input_caro_board()
         else:
-            self.state = State(game_map, move_cnt, empty_positions, last_move=last_move)
+            self.state = State(game_map= game_map, move_cnt= move_cnt, empty_positions= None, last_move= last_move)
             self.state.print_state()
         self.solver = Solver()
 
@@ -364,16 +410,14 @@ class CaroGame():
             n = int(input("size of the caro game: "))            #size of the board
             move_cnt = int(input("number of moves haved been done: "))
             game_map = [[SPACE for i in range(n)] for j in range(n)]
-            empty_positions = set([(i, j) for i in range(n) for j in range(n)])
             
             for i in range(move_cnt):
                 x, y = list(map(int, input("Enter the position of the move (input's format: x, y): ").split(', ')))
                 game_map[x][y] = State.get_symbol(i)               # start move is X
-                empty_positions.remove((x, y))
                 if i == move_cnt -1:
                     last_move = (x, y)
                 
-            state = State(game_map, move_cnt, empty_positions, last_move=last_move)
+            state = State(game_map= game_map, move_cnt= move_cnt, empty_positions = None, last_move=last_move)
             state.print_state()
             
         except Exception:
@@ -391,34 +435,21 @@ class CaroGame():
 
 def main():
     begin = time.time()
-    n = 15
-    game_map = [['X', ' ', ' ', 'O', 'O', ' ', ' ', ' ', 'O', ' ', ' ', ' ', 'X', ' ', ' '],
-                ['X', ' ', ' ', ' ', ' ', ' ', ' ', 'O', ' ', ' ', ' ', 'X', ' ', 'O', ' '],
-                ['X', 'O', 'X', ' ', ' ', ' ', 'O', ' ', ' ', ' ', ' ', 'O', 'X', ' ', ' '],
-                [' ', ' ', ' ', ' ', 'X', ' ', 'X', ' ', ' ', 'O', ' ', ' ', ' ', ' ', ' '],
-                [' ', ' ', 'O', ' ', 'X', ' ', 'X', 'X', ' ', ' ', 'O', ' ', ' ', ' ', ' '],
-                ['X', ' ', ' ', ' ', ' ', ' ', 'O', ' ', ' ', 'X', ' ', ' ', ' ', ' ', ' '],
-                [' ', ' ', 'O', ' ', 'X', ' ', ' ', 'O', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-                [' ', ' ', 'O', ' ', ' ', ' ', ' ', 'X', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-                [' ', 'O', ' ', ' ', ' ', ' ', ' ', ' ', 'O', ' ', ' ', 'O', ' ', 'X', ' '],
-                [' ', ' ', 'X', ' ', ' ', ' ', ' ', ' ', 'X', ' ', ' ', 'O', ' ', ' ', ' '],
-                [' ', ' ', ' ', ' ', ' ', 'O', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'O', ' '],
-                ['X', ' ', 'X', ' ', ' ', ' ', ' ', ' ', 'O', 'X', ' ', ' ', 'X', ' ', ' '],
-                [' ', ' ', ' ', 'X', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'X'],
-                [' ', ' ', ' ', ' ', ' ', ' ', 'O', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-                [' ', ' ', 'O', 'O', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']]
+    n = 8
+    game_map = [[' ', 'X', 'X', ' ', 'X', ' ', ' ', ' '],
+                ['O', ' ', 'O', 'O', ' ', ' ', ' ', ' '],
+                ['X', 'X', 'X', ' ', 'X', ' ', ' ', ' '],
+                ['O', 'O', ' ', 'O', ' ', ' ', ' ', ' '],
+                ['X', ' ', 'X', ' ', ' ', ' ', ' ', ' '],
+                ['O', 'O', ' ', 'O', ' ', ' ', ' ', ' '],
+                [' ', ' ', 'X', ' ', ' ', ' ', ' ', ' '],
+                [' ', 'O', ' ', ' ', ' ', ' ', ' ', ' ']]
     
-    move_cnt = 50
-    empty_positions = set([(i, j) for i in range(n) for j in range(n)])
-    for i in range(n):
-        for j in range(n):
-            if (game_map[i][j] != ' '):
-                move_cnt += 1
-                empty_positions.remove((i, j))
+    move_cnt = 20
                 
-    last_move = (6, 2)
+    last_move = (5, 1)
     
-    game = CaroGame(n, game_map, move_cnt, empty_positions, last_move)
+    game = CaroGame(n, game_map, move_cnt, last_move)
     
     end = time.time()
     print(end - begin)
