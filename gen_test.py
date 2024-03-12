@@ -20,8 +20,8 @@ def print_state(state: list[list]):
     print(']')
 
 def main():
-    n = 8          #size of the board
-    move_cnt = 20
+    n = 15         #size of the board
+    move_cnt = 15
     game_map = [[SPACE for i in range(n)] for j in range(n)]
     empty_positions = set()
     
@@ -29,8 +29,8 @@ def main():
     
     i, j = randint(0, n - 1), randint(0, n - 1)
     game_map[i][j] = X
-    for x in range(max(i - 2, 0), min(i + 3, len(game_map))):
-        for y in range(max(j - 2, 0), min(j + 3, len(game_map))):
+    for x in range(max(i - 1, 0), min(i + 2, len(game_map))):
+        for y in range(max(j - 1, 0), min(j + 2, len(game_map))):
             if is_empty_position(game_map, x, y):
                 empty_positions.add((x, y))
                 
@@ -38,7 +38,7 @@ def main():
         l = len(empty_positions)
         position = empty_positions.pop()
         i, j = position
-        game_map[i][j] = X if i % 2 == 0 else O
+        game_map[i][j] = O if k % 2 == 0 else X
         
         for x in range(max(i - 1, 0), min(i + 2, len(game_map))):
             for y in range(max(j - 1, 0), min(j + 2, len(game_map))):
